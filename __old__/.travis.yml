@@ -1,0 +1,20 @@
+language: c
+
+services:
+ - docker
+ 
+before_install:
+ - sudo free -m -t
+ - sudo /etc/init.d/mysql stop
+ - sudo /etc/init.d/postgresql stop
+ - sudo free -m -t
+
+script:
+ - docker build --memory-swap -1 -t mochiya98/go-node-awscli:alpine .
+
+after_success:
+ - docker history mochiya98/go-node-awscli:alpine
+ - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
+ - docker push mochiya98/go-node-awscli:alpine
+ - docker tag mochiya98/go-node-awscli:alpine mochiya98/go-node-awscli:latest
+ - docker push mochiya98/go-node-awscli:latest

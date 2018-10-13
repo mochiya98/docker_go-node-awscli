@@ -1,0 +1,27 @@
+services:
+ - docker
+
+language: generic
+
+
+env:
+  - TRAVIS_NODE_VERSION=10 DOCKER_IMAGE_TYPE=alpine
+  - TRAVIS_NODE_VERSION=10 DOCKER_IMAGE_TYPE=slim
+  - TRAVIS_NODE_VERSION=8 DOCKER_IMAGE_TYPE=alpine
+  - TRAVIS_NODE_VERSION=8 DOCKER_IMAGE_TYPE=slim
+
+
+before_script:
+  - cd "$DOCKER_IMAGE_TYPE"
+  - cd "node${TRAVIS_NODE_VERSION%.*}"
+  - IMAGE_NAME_LOCAL="mochiya98/go-node-awscli:$DOCKER_IMAGE_TYPE-node${TRAVIS_NODE_VERSION%.*}"
+  - IMAGE_NAME_LATEST="mochiya98/go-node-awscli:$DOCKER_IMAGE_TYPE"
+
+script:
+ - docker build --memory-swap -1 -t ${IMAGE_NAME_LOCAL} .
+
+after_success:
+ - docker history ${IMAGE_NAME_LOCAL}
+ - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
+ - docker push ${IMAGE_NAME_LOCAL}
+ - if [ ${TRAVIS_NODE_VERSION%.*} = 10 ]; then docker tag ${IMAGE_NAME_LOCAL} ${IMAGE_NAME_LATEST} && docker push ${IMAGE_NAME_LATEST}; fi
